@@ -26,3 +26,17 @@ void Cifras::InicializarObjetivo(){
     objetivo=dist(rd);
 }
 
+Cifras::Cifras(){
+    InicializarExtraidos();
+    InicializarObjetivo();
+}
+
+vector<int> Cifras::GetConjuntoNumeros(){
+    return ConjuntoNumeros;
+}
+
+vector<int> Cifras::GetExtraidos(){
+    return Extraidos;
+}
+
+

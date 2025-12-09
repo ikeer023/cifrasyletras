@@ -39,6 +39,11 @@ class Cifras {
 
     public:
 
+        Cifras();
+
+        vector<int> GetConjuntoNumeros();
+
+        vector<int> GetExtraidos();
 
 
 
