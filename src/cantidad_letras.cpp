@@ -1,6 +1,6 @@
 #include <fstream>
-#include <map>
 #include <iostream>
+#include <map>
 #include "dictionary.h"
 #include "letters_set.h"
 
@@ -16,63 +16,56 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    // Abrimos el diccionario
-    ifstream f_dic(argv[1]);
-    if (!f_dic) {
-        cout << "Error, no se pudo abrir el fichero del diccionario" << endl;
-        return 0;
-    }
-
+    // Abrir el fichero del diccionario
+    ifstream dic_fich(argv[1]);
     Dictionary dic;
-    f_dic >> dic;
-    f_dic.close();
+    dic_fich >> dic;
+    dic_fich.close();
 
-    // Abrimos el fichero de letras
-    ifstream f_let(argv[2]);
-    if (!f_let) {
-        cout << "Error, no se pudo abrir el fichero de letras" << endl;
-        return 0;
+    // Abrir el fichero con las letras
+    ifstream letras_fich(argv[2]);
+    LettersSet conjunto_de_letras;
+    letras_fich >> conjunto_de_letras;
+    letras_fich.close();
+
+    // Mapa que guarda la cantidad de apariciones de cada letra
+    map<char, int> cant_apariciones;
+    int apariciones_minimas = -1;
+    int apariciones_maximas = 0;
+
+    // Contar las apariciones de cada letra en el diccionario
+    for (LettersSet::iterator iterador = conjunto_de_letras.begin(); iterador != conjunto_de_letras.end(); ++iterador) {
+        char letra = (*iterador).first;
+        int cantidad = dic.getOccurrences(letra);
+
+        cant_apariciones[letra] = cantidad;
+
+        // Encontrar la letra con el mínimo y máximo de apariciones
+        if (cantidad > 0 && (apariciones_minimas == -1 || cantidad < apariciones_minimas))
+            apariciones_minimas = cantidad;
+
+        if (cantidad > apariciones_maximas)
+            apariciones_maximas = cantidad;
     }
 
-    LettersSet letras;
-    f_let >> letras;
-    f_let.close();
+    // Abrir el fichero de salida donde se guardarán los resultados
+    ofstream fich_out(argv[3]);
+    fich_out << "Letra Cantidad Puntos" << endl;
 
-    // Calculamos las apariciones de cada letra en el diccionario
-    map<char, int> apariciones;
-    int total = 0;
+    // Calcular la puntuación de cada letra
+    for (auto it = cant_apariciones.begin(); it != cant_apariciones.end(); ++it) {
+        char letra = it->first;
+        int apariciones = it->second;
+        int puntuacion = 1;
 
-    for (LettersSet::iterator it = letras.begin(); it != letras.end(); ++it) {
-        char car = (*it).first; 
-        int n = dic.getOccurrencias(car);
+        // Solo calculamos puntuación si la letra tiene apariciones
+        if (apariciones > 0 && apariciones_maximas != apariciones_minimas)
+            puntuacion = 1 + 9 * (apariciones_maximas - apariciones) / (apariciones_maximas - apariciones_minimas);
 
-        apariciones[car] = n;
-        total += n;
+        fich_out << letra << "      " << apariciones << "      " << puntuacion << endl;
     }
 
-    // Abrimos el fichero de salida
-    ofstream f_out(argv[3]);
-    if (!f_out) {
-        cout << "Error, no se pudo abrir el fichero de salida" << endl;
-        return 0;
-    }
-
-    // Calculamos la puntuación usando el porcentaje
-    for (auto it = apariciones.begin(); it != apariciones.end(); ++it) {
-        char car = it->first;
-        int a = it->second;
-
-        double porcentaje = (double) a / total;
-        int puntuacion = 0;
-
-        if (porcentaje > 0)
-            puntuacion = (int)(10.0 / porcentaje);  // Inverso proporcional
-
-        f_out << car << " " << a << " " << puntuacion << endl;
-    }
-
-    f_out.close();
-
+    fich_out.close();
     return 0;
 }
 
